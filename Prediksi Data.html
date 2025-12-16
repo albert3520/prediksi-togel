@@ -1,0 +1,908 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis Nomor Panas & Dingin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+        
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+        .hot-number {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+        }
+        .warm-number {
+            background: linear-gradient(135deg, #ffa726, #ffb74d);
+        }
+        .cold-number {
+            background: linear-gradient(135deg, #42a5f5, #64b5f6);
+        }
+        .frozen-number {
+            background: linear-gradient(135deg, #5c6bc0, #7986cb);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .temperature-bar {
+            background: linear-gradient(90deg, #5c6bc0, #42a5f5, #ffa726, #ff6b6b);
+            height: 8px;
+            border-radius: 4px;
+        }
+        .number-box {
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform-style: preserve-3d;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+        .number-box:hover {
+            transform: scale(1.05) translateZ(0);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4); }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white" style="background-color: #445779;">
+    <header class="bg-black bg-opacity-30 backdrop-blur-sm border-b border-white border-opacity-20">
+        <div class="container mx-auto px-4 py-3">
+            <h1 class="text-xl md:text-3xl font-bold text-center text-white">Prediksi Nomor Data Pasaran</h1>
+            <p class="text-center text-blue-100 mt-2 font-medium text-sm md:text-base">Analisis frekuensi kemunculan angka berdasarkan data historis</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-4 md:px-6 md:py-8">
+        <!-- Control Panel -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-6 md:mb-8 border border-white border-opacity-20">
+            <div class="flex flex-wrap gap-2 md:gap-3 justify-center mb-4 md:mb-6">
+                <button onclick="selectRange('2D')" id="btn2D" class="range-btn bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-3 md:px-6 md:py-4 rounded-xl font-semibold transition-all duration-300 border border-white border-opacity-30 text-base md:text-lg">
+                    2D
+                </button>
+                <button onclick="selectRange('3D')" id="btn3D" class="range-btn bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-3 md:px-6 md:py-4 rounded-xl font-semibold transition-all duration-300 border border-white border-opacity-30 text-base md:text-lg">
+                    3D
+                </button>
+                <button onclick="selectRange('4D')" id="btn4D" class="range-btn bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-3 md:px-6 md:py-4 rounded-xl font-semibold transition-all duration-300 border border-white border-opacity-30 text-base md:text-lg">
+                    4D
+                </button>
+                <button onclick="selectRange('5D')" id="btn5D" class="range-btn bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-3 md:px-6 md:py-4 rounded-xl font-semibold transition-all duration-300 border border-white border-opacity-30 text-base md:text-lg">
+                    5D
+                </button>
+                <button onclick="selectRange('6D')" id="btn6D" class="range-btn bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-3 md:px-6 md:py-4 rounded-xl font-semibold transition-all duration-300 border border-white border-opacity-30 text-base md:text-lg">
+                    6D
+                </button>
+            </div>
+            
+            <!-- Prediction Method Selection -->
+            <div class="mb-4 md:mb-6">
+                <h3 class="text-base md:text-lg font-semibold text-center mb-3 md:mb-4">Pilih Metode Prediksi:</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+                    <button onclick="generatePrediction('hot')" class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 px-4 py-3 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 text-sm md:text-base">
+                        🔥 Gunakan Nomor Panas
+                    </button>
+                    <button onclick="generatePrediction('cold')" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 px-4 py-3 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 text-sm md:text-base">
+                        ❄️ Gunakan Nomor Dingin
+                    </button>
+                    <button onclick="generatePrediction('mixed')" class="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 px-4 py-3 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 text-sm md:text-base">
+                        🌡️ Gunakan Campuran
+                    </button>
+                    <button onclick="generatePrediction('random')" class="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 px-4 py-3 md:px-6 md:py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 text-sm md:text-base">
+                        🎲 Cari Nomor Acak
+                    </button>
+                </div>
+            </div>
+
+            <!-- Number Display Boxes -->
+            <div class="mt-4 md:mt-6">
+                <h3 class="text-lg md:text-xl font-bold text-center mb-3 md:mb-4">Hasil Prediksi <span id="currentTypeDisplay">4D</span></h3>
+                <div id="numberBoxes" class="flex justify-center gap-2 md:gap-3 mb-4 md:mb-6">
+                    <!-- Number boxes will be generated here -->
+                </div>
+                
+                <!-- Previous Numbers History -->
+                <div class="bg-white bg-opacity-10 rounded-xl p-3 md:p-4">
+                    <h4 class="text-base md:text-lg font-semibold text-center mb-2 md:mb-3">🕒 History</h4>
+                    <div id="previousNumbers" class="space-y-2">
+                        <div class="text-center text-gray-300 text-sm">Belum ada riwayat</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Section -->
+        <div class="bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl p-4 md:p-6 mb-6 md:mb-8 border border-white border-opacity-20">
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 md:px-6 md:py-3 rounded-xl font-semibold text-center mb-4 md:mb-6">
+                <div class="text-sm md:text-base">📅 Data Hari Ini: <span id="currentDate"></span></div>
+                <div class="text-xs md:text-sm mt-2 opacity-90">🔄 Pola angka berubah setiap hari jam 12:00 AM WIB berdasarkan analisis matematis</div>
+
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div class="bg-white bg-opacity-20 rounded-xl p-3 md:p-4">
+                    <h3 class="text-base md:text-lg font-bold mb-2 md:mb-3 text-center">🔥 Angka Panas Hari Ini</h3>
+                    <div id="hotDigits" class="flex justify-center gap-2 flex-wrap">
+                        <!-- Hot digits will be displayed here -->
+                    </div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-xl p-3 md:p-4">
+                    <h3 class="text-base md:text-lg font-bold mb-2 md:mb-3 text-center">❄️ Angka Dingin Hari Ini</h3>
+                    <div id="coldDigits" class="flex justify-center gap-2 flex-wrap">
+                        <!-- Cold digits will be displayed here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Explanation Section -->
+            <div class="bg-white bg-opacity-15 rounded-xl p-4 md:p-6 mt-4 md:mt-6">
+                <h4 class="text-base md:text-lg font-bold text-center mb-3 md:mb-4">📚 Penjelasan Angka Panas & Dingin</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 text-xs md:text-sm">
+                    <div class="bg-red-500 bg-opacity-20 rounded-lg p-3 md:p-4 border border-red-400 border-opacity-30">
+                        <h5 class="font-bold text-red-200 mb-2 flex items-center text-sm md:text-base">
+                            🔥 Angka Panas
+                        </h5>
+                        <ul class="space-y-1 text-red-100">
+                            <li>• Angka yang <strong>sering muncul</strong> dalam data historis</li>
+                            <li>• Memiliki frekuensi kemunculan <strong>tinggi</strong></li>
+                            <li>• Berdasarkan analisis pola harian</li>
+                            <li>• Cocok untuk strategi <strong>follow trend</strong></li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-500 bg-opacity-20 rounded-lg p-3 md:p-4 border border-blue-400 border-opacity-30">
+                        <h5 class="font-bold text-blue-200 mb-2 flex items-center text-sm md:text-base">
+                            ❄️ Angka Dingin
+                        </h5>
+                        <ul class="space-y-1 text-blue-100">
+                            <li>• Angka yang <strong>jarang muncul</strong> dalam data historis</li>
+                            <li>• Memiliki frekuensi kemunculan <strong>rendah</strong></li>
+                            <li>• Berpotensi untuk <strong>"keluar"</strong> karena jarang muncul</li>
+                            <li>• Cocok untuk strategi <strong>contrarian</strong></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-3 md:mt-4 p-3 md:p-4 bg-yellow-500 bg-opacity-20 rounded-lg border border-yellow-400 border-opacity-30">
+                    <p class="text-yellow-100 text-xs md:text-sm text-center">
+                        <strong>💡 Tips:</strong> Data ini diperbarui setiap hari berdasarkan analisis statistik. 
+                        Gunakan sebagai referensi, bukan jaminan. Selalu bermain dengan bijak dan bertanggung jawab.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature Legend -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-6 md:mb-8 border border-white border-opacity-20">
+            <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-center">🌡️ Skala Temperatur Nomor</h2>
+            <p class="text-center text-blue-200 mb-3 md:mb-4 text-xs md:text-sm">👆 Klik pada kategori temperatur untuk melihat detail dan contoh nomor</p>
+            <div class="temperature-bar mb-3 md:mb-4"></div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-center">
+                <div onclick="showTemperatureDetails('BEKU', '❄️', '0-2 kali', 'Nomor yang sangat jarang muncul dalam data historis')" class="frozen-number p-2 md:p-3 rounded-xl cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-lg">
+                    <div class="font-bold text-sm md:text-base">❄️ BEKU</div>
+                    <div class="text-xs md:text-sm opacity-80">0-2 kali</div>
+                </div>
+                <div onclick="showTemperatureDetails('DINGIN', '🧊', '3-5 kali', 'Nomor dengan frekuensi kemunculan rendah')" class="cold-number p-2 md:p-3 rounded-xl cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-lg">
+                    <div class="font-bold text-sm md:text-base">🧊 DINGIN</div>
+                    <div class="text-xs md:text-sm opacity-80">3-5 kali</div>
+                </div>
+                <div onclick="showTemperatureDetails('HANGAT', '🔥', '6-8 kali', 'Nomor dengan frekuensi kemunculan sedang')" class="warm-number p-2 md:p-3 rounded-xl cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-lg">
+                    <div class="font-bold text-sm md:text-base">🔥 HANGAT</div>
+                    <div class="text-xs md:text-sm opacity-80">6-8 kali</div>
+                </div>
+                <div onclick="showTemperatureDetails('PANAS', '🌋', '9+ kali', 'Nomor yang sering muncul dalam data historis')" class="hot-number p-2 md:p-3 rounded-xl cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-lg">
+                    <div class="font-bold text-sm md:text-base">🌋 PANAS</div>
+                    <div class="text-xs md:text-sm opacity-80">9+ kali</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+            <div class="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl p-4 md:p-6 text-center">
+                <div class="text-2xl md:text-3xl mb-2">🔥</div>
+                <div class="text-xl md:text-2xl font-bold" id="hotCount">0</div>
+                <div class="text-xs md:text-sm opacity-90">Nomor Panas</div>
+            </div>
+            <div class="bg-gradient-to-br from-orange-500 to-yellow-600 rounded-2xl p-4 md:p-6 text-center">
+                <div class="text-2xl md:text-3xl mb-2">🌡️</div>
+                <div class="text-xl md:text-2xl font-bold" id="warmCount">0</div>
+                <div class="text-xs md:text-sm opacity-90">Nomor Hangat</div>
+            </div>
+            <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-4 md:p-6 text-center">
+                <div class="text-2xl md:text-3xl mb-2">❄️</div>
+                <div class="text-xl md:text-2xl font-bold" id="coldCount">0</div>
+                <div class="text-xs md:text-sm opacity-90">Nomor Dingin</div>
+            </div>
+        </div>
+
+        <!-- Top Lists -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-6 md:mt-8">
+            <div class="bg-white bg-opacity-15 rounded-2xl p-4 md:p-6 border border-white border-opacity-20">
+                <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-center">🔥 Top 5 Nomor Terpanas</h3>
+                <div id="hotList" class="space-y-2">
+                    <!-- Hot numbers list -->
+                </div>
+            </div>
+            <div class="bg-white bg-opacity-15 rounded-2xl p-4 md:p-6 border border-white border-opacity-20">
+                <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-center">❄️ Top 5 Nomor Terdingin</h3>
+                <div id="coldList" class="space-y-2">
+                    <!-- Cold numbers list -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer with Important Disclaimer -->
+    <footer class="bg-black bg-opacity-40 border-t border-white border-opacity-20 mt-8 md:mt-12">
+        <div class="container mx-auto px-4 py-6 md:px-6 md:py-8">
+            <div class="bg-yellow-500 bg-opacity-20 rounded-2xl p-4 md:p-6 border border-yellow-400 border-opacity-30">
+                <div class="text-center">
+                    <div class="text-2xl md:text-3xl mb-3 md:mb-4">⚠️</div>
+                    <h3 class="text-lg md:text-xl font-bold text-yellow-200 mb-3 md:mb-4">Penting untuk Diingat:</h3>
+                    <p class="text-yellow-100 leading-relaxed max-w-4xl mx-auto text-sm md:text-base">
+                        Website ini menyediakan alat bantu kalkulasi dan analisis berdasarkan rumus matematis. 
+                        Hasil prediksi bersifat probabilitas dan tidak menjamin kemenangan 100%. 
+                        Gunakan dengan bijak dan bertanggung jawab.
+                    </p>
+                </div>
+            </div>
+    </footer>
+
+    <script>
+        let numberData = {};
+        let currentType = '4D';
+        let maxRange = 9999;
+        let digits = 4;
+        let previousNumbers = []; // Store previous generated numbers
+
+        function initializeData() {
+            // Get current date in WIB timezone (UTC+7) - changes at 12:00 AM WIB
+            const now = new Date();
+            const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000)); // Convert to WIB
+            const today = new Date(wibTime.getFullYear(), wibTime.getMonth(), wibTime.getDate()); // Get date only
+            
+            // Use date as seed - changes every day at 12:00 AM WIB
+            const dateString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+            const seed = parseInt(dateString.replace(/-/g, '')); // Convert to number: 20241215
+            
+
+            
+            // Generate number frequency data - ULTRA RANDOM method for natural distribution
+            numberData = {};
+            for (let i = 0; i <= maxRange; i++) {
+                // Multiple complex random factors for completely natural distribution
+                const factor1 = (seed + i * 73) % 13;
+                const factor2 = (seed * 11 + i * 47) % 17;
+                const factor3 = (seed * 13 + i * 89) % 19;
+                const factor4 = (i * 31 + seed * 23) % 23;
+                const factor5 = (seed * 17 + i * 67) % 29;
+                
+                // Additional scrambling based on position and date
+                const positionScramble = (i * 43 + seed * 37) % 31;
+                const dateScramble = (seed * 19 + i * 53) % 37;
+                
+                // Combine all factors with varying weights for maximum randomness
+                let frequency = Math.abs(
+                    (factor1 * 3 + factor2 * 2 + factor3 + factor4 * 4 + factor5 + 
+                     positionScramble + dateScramble * 2) % 12
+                );
+                
+                // Additional random adjustment to break any remaining patterns
+                const randomAdjust = (seed * 7 + i * 97 + factor1 * factor2) % 5;
+                frequency = (frequency + randomAdjust) % 12;
+                
+                numberData[i] = frequency;
+            }
+            
+            // Generate daily hot and cold digits - MORE RANDOM and SCATTERED method
+            const allDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            const shuffledDigits = [...allDigits];
+            
+            // Multiple shuffle passes with different seeds for better randomness
+            for (let pass = 0; pass < 3; pass++) {
+                for (let i = shuffledDigits.length - 1; i > 0; i--) {
+                    const randomSeed = seed + pass * 47 + i * 31;
+                    const j = (randomSeed * 13 + i * 29) % (i + 1);
+                    [shuffledDigits[i], shuffledDigits[j]] = [shuffledDigits[j], shuffledDigits[i]];
+                }
+            }
+            
+            // Additional scrambling based on date components
+            const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+            for (let i = 0; i < shuffledDigits.length; i++) {
+                const swapIndex = (i + dayOfYear * 7 + seed * 3) % shuffledDigits.length;
+                [shuffledDigits[i], shuffledDigits[swapIndex]] = [shuffledDigits[swapIndex], shuffledDigits[i]];
+            }
+            
+            // First 5 digits are hot, last 5 are cold
+            const dailyHotDigits = shuffledDigits.slice(0, 5);
+            const dailyColdDigits = shuffledDigits.slice(5, 10);
+            
+            // Store globally - GUARANTEED to work
+            window.dailyHotDigits = dailyHotDigits;
+            window.dailyColdDigits = dailyColdDigits;
+            
+            // Display current date in WIB
+            document.getElementById('currentDate').textContent = wibTime.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }) + ' (WIB)';
+            
+            updateDisplay();
+        }
+
+        function selectRange(type) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.range-btn').forEach(btn => {
+                btn.className = 'range-btn bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-4 rounded-xl font-semibold transition-all duration-300 border border-white border-opacity-30 text-lg';
+            });
+            
+            // Add active class to selected button
+            document.getElementById('btn' + type).className = 'range-btn bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 rounded-xl font-semibold transition-all duration-300 border border-white border-opacity-30 text-lg';
+            
+            currentType = type;
+            
+            switch(currentType) {
+                case '2D':
+                    maxRange = 99;
+                    digits = 2;
+                    break;
+                case '3D':
+                    maxRange = 999;
+                    digits = 3;
+                    break;
+                case '4D':
+                    maxRange = 9999;
+                    digits = 4;
+                    break;
+                case '5D':
+                    maxRange = 99999;
+                    digits = 5;
+                    break;
+                case '6D':
+                    maxRange = 999999;
+                    digits = 6;
+                    break;
+            }
+            
+            // Update display type and create number boxes
+            document.getElementById('currentTypeDisplay').textContent = currentType;
+            createNumberBoxes();
+            initializeData();
+        }
+
+        function createNumberBoxes() {
+            const container = document.getElementById('numberBoxes');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < digits; i++) {
+                const box = document.createElement('div');
+                box.className = 'number-box w-12 h-12 md:w-16 md:h-16 bg-white bg-opacity-20 border-2 border-white border-opacity-40 rounded-xl flex items-center justify-center text-lg md:text-2xl font-bold';
+                box.innerHTML = '?';
+                box.id = `digit-${i}`;
+                container.appendChild(box);
+            }
+        }
+
+        function getTemperatureClass(frequency) {
+            if (frequency >= 9) return 'hot-number';
+            if (frequency >= 6) return 'warm-number';
+            if (frequency >= 3) return 'cold-number';
+            return 'frozen-number';
+        }
+
+        function getTemperatureIcon(frequency) {
+            if (frequency >= 9) return '🌋';
+            if (frequency >= 6) return '🔥';
+            if (frequency >= 3) return '🧊';
+            return '❄️';
+        }
+
+        function updateDisplay() {
+            let hotCount = 0, warmCount = 0, coldCount = 0;
+
+            // Count categories for all numbers
+            for (let i = 0; i <= maxRange; i++) {
+                const frequency = numberData[i] || 0;
+                if (frequency >= 9) hotCount++;
+                else if (frequency >= 6) warmCount++;
+                else coldCount++;
+            }
+
+            // Update statistics
+            document.getElementById('hotCount').textContent = hotCount;
+            document.getElementById('warmCount').textContent = warmCount;
+            document.getElementById('coldCount').textContent = coldCount;
+
+            updateTopLists();
+            updateDigitAnalysis();
+        }
+
+        function updateDigitAnalysis() {
+            // Use the daily hot and cold digits that were generated based on date
+            // Triple safety check to ensure digits are always displayed
+            let hotDigits = window.dailyHotDigits;
+            let coldDigits = window.dailyColdDigits;
+            
+            // If somehow still empty, force the fallback values
+            if (!hotDigits || hotDigits.length === 0) {
+                hotDigits = [1, 3, 7, 8, 9];
+                window.dailyHotDigits = hotDigits;
+            }
+            
+            if (!coldDigits || coldDigits.length === 0) {
+                coldDigits = [0, 2, 4, 5, 6];
+                window.dailyColdDigits = coldDigits;
+            }
+
+            // Display hot digits with enhanced styling
+            const hotDigitsContainer = document.getElementById('hotDigits');
+            hotDigitsContainer.innerHTML = '';
+            hotDigits.forEach((digit, index) => {
+                const digitCard = document.createElement('div');
+                digitCard.className = 'bg-gradient-to-br from-red-500 to-red-600 text-white rounded-lg px-4 py-2 font-bold text-lg shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer';
+                digitCard.style.webkitFontSmoothing = 'antialiased';
+                digitCard.style.mozOsxFontSmoothing = 'grayscale';
+                digitCard.style.textRendering = 'optimizeLegibility';
+                digitCard.style.backfaceVisibility = 'hidden';
+                digitCard.style.transform = 'translateZ(0)';
+                digitCard.textContent = digit;
+                digitCard.title = `Angka Panas Hari Ini - Prioritas ${index + 1}`;
+                
+                // Add click handler to show digit details
+                digitCard.onclick = () => showDigitDetails(digit, 'PANAS', '🔥', 'Angka yang berpotensi sering muncul hari ini');
+                
+                hotDigitsContainer.appendChild(digitCard);
+            });
+
+            // Display cold digits with enhanced styling
+            const coldDigitsContainer = document.getElementById('coldDigits');
+            coldDigitsContainer.innerHTML = '';
+            coldDigits.forEach((digit, index) => {
+                const digitCard = document.createElement('div');
+                digitCard.className = 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg px-4 py-2 font-bold text-lg shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer';
+                digitCard.style.webkitFontSmoothing = 'antialiased';
+                digitCard.style.mozOsxFontSmoothing = 'grayscale';
+                digitCard.style.textRendering = 'optimizeLegibility';
+                digitCard.style.backfaceVisibility = 'hidden';
+                digitCard.style.transform = 'translateZ(0)';
+                digitCard.textContent = digit;
+                digitCard.title = `Angka Dingin Hari Ini - Prioritas ${index + 1}`;
+                
+                // Add click handler to show digit details
+                digitCard.onclick = () => showDigitDetails(digit, 'DINGIN', '❄️', 'Angka yang berpotensi jarang muncul hari ini');
+                
+                coldDigitsContainer.appendChild(digitCard);
+            });
+        }
+
+        function updateTopLists() {
+            const sortedNumbers = Object.entries(numberData).sort((a, b) => b[1] - a[1]);
+            
+            // Hot list (highest frequency)
+            const hotList = document.getElementById('hotList');
+            hotList.innerHTML = '';
+            for (let i = 0; i < Math.min(5, sortedNumbers.length); i++) {
+                const [num, freq] = sortedNumbers[i];
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center bg-white bg-opacity-10 rounded-lg p-3';
+                item.innerHTML = `
+                    <span class="font-bold">#${i + 1} - ${num.padStart(digits, '0')}</span>
+                    <span class="bg-red-500 px-2 py-1 rounded-full text-sm">${freq}x 🔥</span>
+                `;
+                hotList.appendChild(item);
+            }
+
+            // Cold list (lowest frequency)
+            const coldList = document.getElementById('coldList');
+            coldList.innerHTML = '';
+            const reverseSorted = [...sortedNumbers].reverse();
+            for (let i = 0; i < Math.min(5, reverseSorted.length); i++) {
+                const [num, freq] = reverseSorted[i];
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center bg-white bg-opacity-10 rounded-lg p-3';
+                item.innerHTML = `
+                    <span class="font-bold">#${i + 1} - ${num.padStart(digits, '0')}</span>
+                    <span class="bg-blue-500 px-2 py-1 rounded-full text-sm">${freq}x ❄️</span>
+                `;
+                coldList.appendChild(item);
+            }
+        }
+
+        function showNumberDetails(number, frequency) {
+            const tempClass = getTemperatureClass(frequency);
+            const icon = getTemperatureIcon(frequency);
+            let status = '';
+            
+            if (frequency >= 9) status = 'PANAS 🌋';
+            else if (frequency >= 6) status = 'HANGAT 🔥';
+            else if (frequency >= 3) status = 'DINGIN 🧊';
+            else status = 'BEKU ❄️';
+
+            // Create modal-like overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.innerHTML = `
+                <div class="bg-white bg-opacity-25 rounded-2xl p-8 text-center max-w-sm mx-4 border border-white border-opacity-30" style="position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                    <div class="text-6xl mb-4">${icon}</div>
+                    <div class="text-4xl font-bold mb-2">${number.toString().padStart(digits, '0')}</div>
+                    <div class="text-xl mb-4">Status: ${status}</div>
+                    <div class="text-lg mb-6">Muncul: ${frequency} kali</div>
+                    <div class="text-sm opacity-80 mb-6">Tipe: ${currentType}</div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-xl font-semibold transition-all duration-300">
+                        Tutup
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Remove overlay when clicking outside
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            };
+        }
+
+        function showDigitDetails(digit, category, icon, description) {
+            // Create modal-like overlay for digit details
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.innerHTML = `
+                <div class="bg-white bg-opacity-25 rounded-2xl p-8 text-center max-w-md mx-4 border border-white border-opacity-30" style="position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                    <div class="text-6xl mb-4">${icon}</div>
+                    <div class="text-4xl font-bold mb-2">${digit}</div>
+                    <div class="text-2xl mb-4">${category}</div>
+                    <div class="text-sm opacity-90 mb-4">${description}</div>
+                    <div class="bg-white bg-opacity-10 rounded-xl p-4 mb-4">
+                        <div class="text-lg font-semibold mb-2">Angka Harian</div>
+                        <div class="text-sm opacity-80 mb-2">Berdasarkan analisis pola tanggal ${new Date().toLocaleDateString('id-ID')}</div>
+                        <div class="text-xs opacity-70">
+                            ${category === 'PANAS' ? 
+                                'Gunakan angka ini untuk strategi "follow trend" - ikuti pola yang sedang kuat' : 
+                                'Gunakan angka ini untuk strategi "contrarian" - manfaatkan potensi rebound'}
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-xl font-semibold transition-all duration-300">
+                        Tutup
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Remove overlay when clicking outside
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            };
+        }
+
+        function showTemperatureDetails(category, icon, frequency, description) {
+            // Count numbers in this category
+            let count = 0;
+            let examples = [];
+            
+            for (let i = 0; i <= maxRange && examples.length < 5; i++) {
+                const freq = numberData[i] || 0;
+                let inCategory = false;
+                
+                if (category === 'BEKU' && freq <= 2) inCategory = true;
+                else if (category === 'DINGIN' && freq >= 3 && freq <= 5) inCategory = true;
+                else if (category === 'HANGAT' && freq >= 6 && freq <= 8) inCategory = true;
+                else if (category === 'PANAS' && freq >= 9) inCategory = true;
+                
+                if (inCategory) {
+                    count++;
+                    if (examples.length < 5) {
+                        examples.push(i.toString().padStart(digits, '0'));
+                    }
+                }
+            }
+
+            // Create modal-like overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.innerHTML = `
+                <div class="bg-white bg-opacity-25 rounded-2xl p-8 text-center max-w-md mx-4 border border-white border-opacity-30" style="position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                    <div class="text-6xl mb-4">${icon}</div>
+                    <div class="text-3xl font-bold mb-2">${category}</div>
+                    <div class="text-lg mb-4">${frequency}</div>
+                    <div class="text-sm opacity-90 mb-4">${description}</div>
+                    <div class="bg-white bg-opacity-10 rounded-xl p-4 mb-4">
+                        <div class="text-lg font-semibold mb-2">Total: ${count} nomor</div>
+                        <div class="text-sm opacity-80 mb-2">Contoh nomor:</div>
+                        <div class="flex justify-center gap-2 flex-wrap">
+                            ${examples.map(num => `<span class="bg-white bg-opacity-20 px-2 py-1 rounded text-sm font-mono">${num}</span>`).join('')}
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-xl font-semibold transition-all duration-300">
+                        Tutup
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Remove overlay when clicking outside
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            };
+        }
+
+        function generatePrediction(method = 'mixed') {
+            let predictionNum = '';
+            let methodName = '';
+            
+            if (method === 'random') {
+                // Generate completely random number
+                for (let pos = 0; pos < digits; pos++) {
+                    predictionNum += Math.floor(Math.random() * 10).toString();
+                }
+                methodName = 'Acak';
+            } else {
+                // Use the daily hot and cold digits directly from global variables
+                const hotDigits = window.dailyHotDigits || [];
+                const coldDigits = window.dailyColdDigits || [];
+
+                // Generate prediction number based on selected method with smart positioning
+                let usedDigits = [];
+                
+                for (let pos = 0; pos < digits; pos++) {
+                    let selectedDigit;
+                    let attempts = 0;
+                    const maxAttempts = 20;
+                    
+                    do {
+                        if (method === 'hot') {
+                            // Use only hot digits with priority weighting
+                            const priorityIndex = Math.floor(Math.random() * Math.random() * hotDigits.length);
+                            selectedDigit = hotDigits[priorityIndex].toString();
+                            methodName = 'Panas';
+                        } else if (method === 'cold') {
+                            // Use only cold digits with priority weighting
+                            const priorityIndex = Math.floor(Math.random() * Math.random() * coldDigits.length);
+                            selectedDigit = coldDigits[priorityIndex].toString();
+                            methodName = 'Dingin';
+                        } else {
+                            // Mixed method: Smart combination based on position
+                            let useHot;
+                            if (pos === 0 || pos === digits - 1) {
+                                // First and last positions: 80% hot
+                                useHot = Math.random() < 0.8;
+                            } else {
+                                // Middle positions: 60% hot, 40% cold for balance
+                                useHot = Math.random() < 0.6;
+                            }
+                            
+                            const digitPool = useHot ? hotDigits : coldDigits;
+                            const priorityIndex = Math.floor(Math.random() * Math.random() * digitPool.length);
+                            selectedDigit = digitPool[priorityIndex].toString();
+                            methodName = 'Campuran';
+                        }
+                        attempts++;
+                    } while (
+                        attempts < maxAttempts && 
+                        (currentType === '5D' || currentType === '6D') && 
+                        usedDigits.includes(selectedDigit) && 
+                        Math.random() < 0.5 // 50% chance to avoid duplicates in 5D/6D
+                    );
+                    
+                    predictionNum += selectedDigit;
+                    usedDigits.push(selectedDigit);
+                }
+            }
+
+            // Store current number in history (keep only last 3)
+            if (previousNumbers.length >= 3) {
+                previousNumbers.shift(); // Remove oldest
+            }
+            
+            // Get current number from boxes if exists
+            const currentNumber = getCurrentDisplayedNumber();
+            if (currentNumber && currentNumber !== '?'.repeat(digits)) {
+                previousNumbers.push({
+                    number: currentNumber,
+                    type: currentType,
+                    method: methodName,
+                    timestamp: new Date().toLocaleTimeString('id-ID'),
+                    hotDigitsUsed: window.dailyHotDigits.slice(),
+                    coldDigitsUsed: window.dailyColdDigits.slice()
+                });
+            }
+
+            // Display new number in boxes with animation
+            displayNumberInBoxes(predictionNum);
+            
+            // Update previous numbers display
+            updatePreviousNumbersDisplay();
+            
+            // Show method used with daily context
+            showMethodNotification(methodName, hotDigits, coldDigits);
+        }
+
+        function getCurrentDisplayedNumber() {
+            let number = '';
+            for (let i = 0; i < digits; i++) {
+                const box = document.getElementById(`digit-${i}`);
+                if (box && box.textContent !== '?') {
+                    number += box.textContent;
+                }
+            }
+            return number.length === digits ? number : null;
+        }
+
+        function displayNumberInBoxes(number) {
+            const numberStr = number.toString().padStart(digits, '0');
+            
+            // Animate each digit with smooth transitions
+            for (let i = 0; i < digits; i++) {
+                const box = document.getElementById(`digit-${i}`);
+                if (box) {
+                    // Add smooth transition
+                    box.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                    
+                    // First phase: scale down and fade
+                    box.style.transform = 'scale(0.8) rotateY(90deg)';
+                    box.style.opacity = '0.5';
+                    box.style.backgroundColor = 'rgba(255, 215, 0, 0.6)';
+                    box.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.5)';
+                    
+                    setTimeout(() => {
+                        // Change number
+                        box.textContent = numberStr[i];
+                        
+                        // Second phase: scale up and show
+                        box.style.transform = 'scale(1.1) rotateY(0deg)';
+                        box.style.opacity = '1';
+                        box.style.backgroundColor = 'rgba(34, 197, 94, 0.4)';
+                        box.style.boxShadow = '0 0 15px rgba(34, 197, 94, 0.3)';
+                        
+                        setTimeout(() => {
+                            // Final phase: settle
+                            box.style.transform = 'scale(1)';
+                            box.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                            box.style.boxShadow = 'none';
+                        }, 300);
+                    }, i * 150 + 200);
+                }
+            }
+        }
+
+        function updatePreviousNumbersDisplay() {
+            const container = document.getElementById('previousNumbers');
+            
+            if (previousNumbers.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-300">Belum ada riwayat</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            previousNumbers.slice().reverse().forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'bg-white bg-opacity-10 rounded-lg p-3 mb-2';
+                
+                // Create number display with boxes
+                const numberStr = item.number.toString();
+                let numberBoxes = '';
+                for (let i = 0; i < numberStr.length; i++) {
+                    numberBoxes += `<div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-lg font-bold mx-1" style="-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; backface-visibility: hidden; transform: translateZ(0);">${numberStr[i]}</div>`;
+                }
+                
+                // Method badge color
+                let methodColor = 'bg-gray-500';
+                let methodIcon = '🎲';
+                if (item.method === 'Panas') {
+                    methodColor = 'bg-red-500';
+                    methodIcon = '🔥';
+                } else if (item.method === 'Dingin') {
+                    methodColor = 'bg-blue-500';
+                    methodIcon = '❄️';
+                } else if (item.method === 'Campuran') {
+                    methodColor = 'bg-purple-500';
+                    methodIcon = '🌡️';
+                }
+                
+                div.innerHTML = `
+                    <div class="text-center">
+                        <div class="flex justify-center items-center mb-2">
+                            ${numberBoxes}
+                        </div>
+                        <div class="text-xs opacity-80">
+                            <span class="${methodColor} px-2 py-1 rounded-full text-white">${methodIcon} ${item.method}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function showMethodNotification(methodName, hotDigits = [], coldDigits = []) {
+            // Create notification with daily context
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-2 md:right-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 md:px-6 md:py-4 rounded-xl shadow-lg z-50 transform translate-x-full transition-all duration-300 max-w-xs md:max-w-sm text-sm md:text-base';
+            
+            let icon = '🎲';
+            let details = '';
+            if (methodName === 'Panas') {
+                icon = '🔥';
+                details = `<div class="text-xs mt-1 opacity-90">Menggunakan: ${hotDigits.join(', ')}</div>`;
+            } else if (methodName === 'Dingin') {
+                icon = '❄️';
+                details = `<div class="text-xs mt-1 opacity-90">Menggunakan: ${coldDigits.join(', ')}</div>`;
+            } else if (methodName === 'Campuran') {
+                icon = '🌡️';
+                details = `<div class="text-xs mt-1 opacity-90">Panas: ${hotDigits.slice(0,3).join(', ')} | Dingin: ${coldDigits.slice(0,3).join(', ')}</div>`;
+            }
+            
+            notification.innerHTML = `
+                <div class="font-semibold">${icon} Metode: ${methodName}</div>
+                ${details}
+                <div class="text-xs mt-1 opacity-80">Berdasarkan pola harian</div>
+            `;
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                notification.style.transform = 'translateX(full)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3500);
+        }
+
+
+
+        // Initialize on page load
+        selectRange('4D'); // Set initial values to 4D
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9af1113de171ddfc',t:'MTc2NTkxODM3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

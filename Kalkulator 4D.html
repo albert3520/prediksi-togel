@@ -1,0 +1,730 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4D Number Generator</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #445779;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .input-section {
+            margin-bottom: 40px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .input-group {
+            text-align: center;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+
+        .number-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            max-width: 100px;
+            margin: 0 auto;
+            min-height: 40px;
+        }
+
+        .number-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .bonus-input {
+            border-color: #ff6b6b;
+        }
+
+        .bonus-input:focus {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .bonus-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .bonus-section .input-group {
+            display: inline-block;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .clear-btn {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .generate-btn {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0;
+        }
+
+        .clear-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .results-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sorted-numbers {
+            margin-bottom: 30px;
+        }
+
+        .sorted-numbers h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .number-display {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .number-box {
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            padding: 15px 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .bonus-box {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .result-4d {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .result-4d h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .four-d-display {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .digit-box {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border-radius: 12px;
+            padding: 20px 15px;
+            font-size: 2.2rem;
+            font-weight: 900;
+            min-width: 65px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .digit-box.empty {
+            background: linear-gradient(135deg, #e1e8ed, #c8d6e5);
+            color: #8395a7;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .calculation-steps {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .explanation-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .explanation-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .formula-explanation {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .formula-explanation > p {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .formula-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-left: 4px solid #2196f3;
+            background: #e3f2fd;
+            border-radius: 8px;
+        }
+
+        .formula-item h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .formula-item p {
+            color: #666;
+            line-height: 1.6;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .calculation-steps h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .step {
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .step strong {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .input-grid {
+                max-width: 380px;
+                gap: 12px;
+            }
+            
+            .number-input {
+                padding: 12px;
+                font-size: 1.1rem;
+                max-width: 95px;
+                min-height: 38px;
+            }
+            
+            .four-d-display {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .digit-box {
+                font-size: 2rem;
+                padding: 15px 12px;
+                min-width: 55px;
+            }
+
+            .button-group {
+                gap: 10px;
+            }
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 20px 15px;
+            margin-top: 20px;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .disclaimer {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #f39c12;
+        }
+
+        .warning-icon {
+            font-size: 1.1rem;
+            margin-right: 6px;
+        }
+
+        .disclaimer strong {
+            color: #f39c12;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .content {
+                padding: 12px;
+            }
+            
+            .input-grid {
+                max-width: 300px;
+                gap: 10px;
+            }
+            
+            .number-input {
+                padding: 12px;
+                font-size: 1rem;
+                max-width: 85px;
+                min-height: 36px;
+            }
+            
+            .digit-box {
+                font-size: 1.8rem;
+                padding: 12px 10px;
+                min-width: 50px;
+            }
+            
+            .four-d-display {
+                gap: 8px;
+            }
+
+            .disclaimer {
+                font-size: 0.85rem;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Kalkulator 4D</h1>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="num1">Angka 1</label>
+                        <input type="number" id="num1" class="number-input" min="0" max="99">
+                    </div>
+                    <div class="input-group">
+                        <label for="num2">Angka 2</label>
+                        <input type="number" id="num2" class="number-input" min="0" max="99">
+                    </div>
+                    <div class="input-group">
+                        <label for="num3">Angka 3</label>
+                        <input type="number" id="num3" class="number-input" min="0" max="99">
+                    </div>
+                    <div class="input-group">
+                        <label for="num4">Angka 4</label>
+                        <input type="number" id="num4" class="number-input" min="0" max="99">
+                    </div>
+                    <div class="input-group">
+                        <label for="num5">Angka 5</label>
+                        <input type="number" id="num5" class="number-input" min="0" max="99">
+                    </div>
+                    <div class="input-group">
+                        <label for="num6">Angka 6</label>
+                        <input type="number" id="num6" class="number-input" min="0" max="99">
+                    </div>
+                </div>
+                
+                <div class="bonus-section">
+                    <div class="input-group">
+                        <label for="bonus">Bola Bonus</label>
+                        <input type="number" id="bonus" class="number-input bonus-input" min="0" max="99">
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="clear-btn" onclick="clearAll()">
+                        Hapus Semua
+                    </button>
+                    <button class="generate-btn" onclick="generate4D()">
+                        Proses Angka
+                    </button>
+                </div>
+            </div>
+            
+            <div id="results" class="results-section show">
+                <div class="result-4d">
+                    <h2>Hasil 4D Anda</h2>
+                    <div id="fourDDisplay" class="four-d-display">
+                        <div class="digit-box empty">?</div>
+                        <div class="digit-box empty">?</div>
+                        <div class="digit-box empty">?</div>
+                        <div class="digit-box empty">?</div>
+                    </div>
+                </div>
+                
+                <div id="calculations" class="calculation-steps" style="display: none;"></div>
+            </div>
+
+            <div class="explanation-section">
+                <h3>Penjelasan</h3>
+                <div class="formula-explanation">
+                    <div class="formula-item">
+                        <h4>Langkah 1:</h4>
+                        <p>6 angka keluaran akan diurutkan dari kecil ke besar.</p>
+                    </div>
+                    
+                    <div class="formula-item">
+                        <h4>Langkah 2:</h4>
+                        <p>Dari urutan 6 angka, tambahkan angka ke-2 dan angka ke-3, kemudian ambil angka terakhir dari hasil penjumlahan angka ke-2 dan ke-3.</p>
+                    </div>
+                    
+                    <div class="formula-item">
+                        <h4>Langkah 3:</h4>
+                        <p>Dari urutan 6 angka, tambahkan angka ke-4 dan angka ke-5, kemudian ambil angka terakhir dari hasil penjumlahan angka ke-4 dan ke-5.</p>
+                    </div>
+                    
+                    <div class="formula-item">
+                        <h4>Langkah 4:</h4>
+                        <p>Dari urutan 6 angka keluaran, jumlahkan semua 6 angka keluaran, kurangi angka terkecil, tambah angka terbesar, tambah angka bola bonus yang keluar, ambil angka tengah dari hasil rumus yang digunakan.</p>
+                    </div>
+                    
+                    <div class="formula-item">
+                        <h4>Langkah 5:</h4>
+                        <p>Dari urutan 6 angka, jumlahkan semua 6 angka, kurangi angka terkecil, tambah angka terbesar, tambah angka bola bonus yang keluar, ambil angka terakhir dari hasil rumus yang digunakan.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="disclaimer">
+                <span class="warning-icon">⚠️</span>
+                <strong>Penting untuk Diingat:</strong><br>
+                Website ini menyediakan alat bantu kalkulasi dan analisis berdasarkan rumus matematis. Hasil prediksi bersifat probabilitas dan tidak menjamin kemenangan 100%. Gunakan dengan bijak dan bertanggung jawab.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        function clearAll() {
+            // Clear all input fields
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`num${i}`).value = '';
+            }
+            document.getElementById('bonus').value = '';
+            
+            // Reset 4D display to question marks
+            const digitBoxes = document.querySelectorAll('.digit-box');
+            digitBoxes.forEach(box => {
+                box.textContent = '?';
+                box.classList.add('empty');
+            });
+            
+            // Hide calculations
+            document.getElementById('calculations').style.display = 'none';
+            
+            // Hide any error messages
+            const errorDiv = document.getElementById('error-message');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+        }
+
+        function generate4D() {
+            // Get input values
+            const inputs = [];
+            for (let i = 1; i <= 6; i++) {
+                const inputElement = document.getElementById(`num${i}`);
+                let value = parseInt(inputElement.value);
+                
+                // Validate and constrain input
+                if (isNaN(value) || inputElement.value === '') {
+                    showError(`Silakan masukkan angka (0-99) untuk Angka ${i}`);
+                    inputElement.focus();
+                    return;
+                }
+                
+                if (value < 0) {
+                    value = 0;
+                    inputElement.value = 0;
+                } else if (value > 99) {
+                    value = 99;
+                    inputElement.value = 99;
+                }
+                
+                inputs.push(value);
+            }
+            
+            const bonusElement = document.getElementById('bonus');
+            let bonus = parseInt(bonusElement.value);
+            
+            if (isNaN(bonus) || bonusElement.value === '') {
+                showError('Silakan masukkan angka bola bonus (0-99)');
+                bonusElement.focus();
+                return;
+            }
+            
+            if (bonus < 0) {
+                bonus = 0;
+                bonusElement.value = 0;
+            } else if (bonus > 99) {
+                bonus = 99;
+                bonusElement.value = 99;
+            }
+            
+            // Sort the 6 numbers from small to large
+            const sortedNumbers = [...inputs].sort((a, b) => a - b);
+            const minNum = sortedNumbers[0];
+            const maxNum = sortedNumbers[5];
+            
+            // Calculate 4D numbers using the formulas
+            
+            // First 4D number: (2nd + 3rd), take last digit
+            const first4D = (inputs[1] + inputs[2]) % 10;
+            
+            // Second 4D number: (4th + 5th), take last digit
+            const second4D = (inputs[3] + inputs[4]) % 10;
+            
+            // Third 4D number: (sum of all 6) - min + max + bonus, take middle digit
+            const sumAll = inputs.reduce((sum, num) => sum + num, 0);
+            const thirdSum = sumAll - minNum + maxNum + bonus;
+            const third4D = Math.floor((thirdSum % 100) / 10); // Middle digit of last 2 digits
+            
+            // Fourth 4D number: (sum of all 6) - min + max + bonus, take last digit
+            const fourth4D = thirdSum % 10;
+            
+            // Display results
+            displayResults(sortedNumbers, bonus, [first4D, second4D, third4D, fourth4D], {
+                inputs,
+                sumAll,
+                minNum,
+                maxNum,
+                thirdSum,
+                calculations: {
+                    first: `(${inputs[1]} + ${inputs[2]}) = ${inputs[1] + inputs[2]} → Digit terakhir: ${first4D}`,
+                    second: `(${inputs[3]} + ${inputs[4]}) = ${inputs[3] + inputs[4]} → Digit terakhir: ${second4D}`,
+                    third: `(${sumAll} - ${minNum} + ${maxNum} + ${bonus}) = ${thirdSum} → Digit tengah: ${third4D}`,
+                    fourth: `(${sumAll} - ${minNum} + ${maxNum} + ${bonus}) = ${thirdSum} → Digit terakhir: ${fourth4D}`
+                }
+            });
+        }
+        
+        function displayResults(sortedNumbers, bonus, fourD, details) {
+            // Display 4D result
+            const digitBoxes = document.querySelectorAll('.digit-box');
+            
+            fourD.forEach((digit, index) => {
+                if (digitBoxes[index]) {
+                    digitBoxes[index].textContent = digit;
+                    digitBoxes[index].classList.remove('empty');
+                }
+            });
+            
+            // Display calculations
+            const calculations = document.getElementById('calculations');
+            calculations.innerHTML = `
+                <h4>Langkah Perhitungan</h4>
+                <div class="step"><strong>Digit ke-1:</strong> ${details.calculations.first}</div>
+                <div class="step"><strong>Digit ke-2:</strong> ${details.calculations.second}</div>
+                <div class="step"><strong>Digit ke-3:</strong> ${details.calculations.third}</div>
+                <div class="step"><strong>Digit ke-4:</strong> ${details.calculations.fourth}</div>
+                <div class="step" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                    <strong>Ringkasan:</strong> Jumlah 6 angka = ${details.sumAll}, 
+                    Min = ${details.minNum}, Max = ${details.maxNum}, Bonus = ${bonus}
+                </div>
+            `;
+            calculations.style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showError(message) {
+            // Create or update error message
+            let errorDiv = document.getElementById('error-message');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'error-message';
+                errorDiv.style.cssText = `
+                    background: #fee;
+                    color: #c33;
+                    padding: 12px;
+                    border-radius: 8px;
+                    margin: 15px 0;
+                    text-align: center;
+                    font-weight: 600;
+                    border: 1px solid #fcc;
+                `;
+                document.querySelector('.input-section').appendChild(errorDiv);
+            }
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Hide error after 3 seconds
+            setTimeout(() => {
+                if (errorDiv) errorDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Add input event listeners to validate on typing
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.number-input');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    let value = parseInt(this.value);
+                    if (value > 99) {
+                        this.value = 99;
+                    } else if (value < 0) {
+                        this.value = 0;
+                    }
+                });
+            });
+        });
+
+        // Allow Enter key to generate
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generate4D();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99cdb02cb277ce37',t:'MTc2Mjg2MzA0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
